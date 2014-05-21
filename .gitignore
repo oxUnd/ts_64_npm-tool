@@ -1,0 +1,16 @@
+/.idea
+/.settings
+/.project
+/public/static
+
+/template/page
+/template/config
+/template/widget
+
+tmp
+~*
+*.db
+*.bak
+*.tmp
+*.swp
+.DS_Store
