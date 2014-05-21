@@ -1,14 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/go-martini/martini"
 	_ "github.com/go-sql-driver/mysql"
-	// "github.com/martini-contrib/binding"
-	"bufio"
 	"github.com/xiangshouding/martini-middleware/fis"
 	"io/ioutil"
 	"log"
@@ -28,6 +27,8 @@ const (
 	s2 = "2"  //安装中
 )
 
+var App_config map[string]string
+
 func main() {
 	m := martini.Classic()
 	m.Use(martini.Static("public"))
@@ -37,7 +38,13 @@ func main() {
 		Extensions: []string{".tpl"},
 	}))
 
-	db, err := sql.Open("mysql", "root@/plg")
+	var err error
+
+	App_config = Get_config()
+
+	dsn, _ := App_config["mysql_dsn"]
+
+	db, err := sql.Open("mysql", dsn)
 
 	if err != nil {
 		panic(err)
@@ -119,8 +126,12 @@ func main() {
 		r.JSON(200, map[string]interface{}{"code": "0"})
 	})
 
-	fmt.Println(martini.Env)
-	m.Run()
+	host, _ := App_config["server_host"]
+	port, _ := App_config["server_port"]
+	addr := host + ":" + port
+	fmt.Println("Listen to port: " + port)
+	http.ListenAndServe(addr, m)
+
 }
 
 func List(db *sql.DB) []map[string]interface{} {
@@ -231,11 +242,8 @@ func Update_status(db *sql.DB, comp, status string) (bool, int64) {
 	return true, last_id
 }
 
-func List_local(settings map[string]string) []map[string]string {
-	npm_, ok := settings["npm_path"]
-	if !ok {
-		npm_ = os.Getenv("NODE_PATH")
-	}
+func List_local() []map[string]string {
+	npm_, _ := App_config["npm_path"]
 
 	dir_arr, err := ioutil.ReadDir(npm_)
 
@@ -271,7 +279,7 @@ func List_local(settings map[string]string) []map[string]string {
 }
 
 func Refresh(db *sql.DB) bool {
-	components := List_local(map[string]string{})
+	components := List_local()
 
 	for _, v := range components {
 		Update_(db, v["name"], s0, v["version"], "fis")
@@ -324,4 +332,48 @@ func Install(comp string, db *sql.DB, is_update bool) (code, msg string) {
 	Update_status(db, name, "0") //update status
 
 	return "0", stdout.String()
+}
+
+func Get_config() map[string]string {
+	c, err := ioutil.ReadFile("config.json")
+	if err != nil {
+		panic(err)
+	}
+
+	d := json.NewDecoder(bytes.NewBuffer(c))
+	var config map[string]interface{}
+
+	err = d.Decode(&config)
+
+	if err != nil {
+		panic(err)
+	}
+
+	r := map[string]string{}
+
+	for k, v := range config {
+		r[k] = v.(string)
+	}
+
+	var ok bool
+	_, ok = r["npm_path"]
+	if !ok {
+		r["npm_path"] = os.Getenv("NODE_PATH")
+	}
+	_, ok = r["mysql_dsn"]
+	if !ok {
+		r["mysql_dsn"] = "root@/plg"
+	}
+
+	_, ok = r["server_port"]
+	if !ok {
+		r["server_port"] = "4000"
+	}
+
+	_, ok = r["server_host"]
+	if !ok {
+		r["server_host"] = "0.0.0.0"
+	}
+
+	return r
 }
