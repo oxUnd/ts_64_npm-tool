@@ -24,9 +24,10 @@ func main() {
 		var r3 int
 		var r4 string
 		var r5 string
-		if err := rows.Scan(&r1, &r2, &r3, &r4, &r5); err != nil {
+		var r6 string
+		if err := rows.Scan(&r1, &r2, &r3, &r4, &r5, &r6); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("plg: %d %s %d %s %s\n", r1, r2, r3, r4, r5)
+		fmt.Println("plg: %d %s %d %s %s %s", r1, r2, r3, r4, r5, r6)
 	}
 }
