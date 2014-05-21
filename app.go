@@ -130,7 +130,7 @@ func main() {
 	port, _ := App_config["server_port"]
 	addr := host + ":" + port
 	fmt.Println("Listen to port: " + port)
-	http.ListenAndServe(addr, m)
+	log.Fatal(http.ListenAndServe(addr, m))
 
 }
 
