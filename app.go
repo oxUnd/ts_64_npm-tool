@@ -40,10 +40,14 @@ func main() {
 	db, err := sql.Open("mysql", "root@/plg")
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		panic(err)
+	}
 
 	m.Get("/", func(r fis.Render) {
 		comps := List(db)
