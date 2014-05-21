@@ -154,11 +154,12 @@ func List(db *sql.DB) []map[string]interface{} {
 }
 
 func New_(db *sql.DB, name, status, version, user string) (int64, error) {
-	var name_ sql.NullString
-	err := db.QueryRow("SELECT name FROM components WHERE name=?", name).Scan(&name_)
 
-	if name_.Valid {
-		return -1, err
+	var id int64
+	err := db.QueryRow("SELECT id FROM components WHERE name=?", name).Scan(&id)
+
+	if err == nil {
+		return id, err
 	}
 
 	stmt, err := db.Prepare("INSERT INTO  components VALUES(null, ?, ?, ?, ?, ?)")
@@ -185,8 +186,7 @@ func New_(db *sql.DB, name, status, version, user string) (int64, error) {
 
 func Update_(db *sql.DB, name, status, version, user string) (int64, error) {
 	last_id, err := New_(db, name, status, version, user)
-
-	if err == nil {
+	if err != nil {
 		return last_id, err
 	}
 

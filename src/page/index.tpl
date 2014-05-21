@@ -98,7 +98,7 @@
                         break;
                     case 'refresh':
                         $.post('/refresh.do', function (result) {
-                            $('#loading').hide()
+                            window.location.reload()
                         });
 
                         break;
