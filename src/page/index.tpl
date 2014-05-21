@@ -41,7 +41,7 @@
         <table id="list-table">
             <thead>
                 <tr>
-                    <th>插件({{.count}})</th>
+                    <th>插件({{.components|len}})</th>
                     <th>状态</th>
                     <th>操作</th>
                 </tr>
@@ -57,7 +57,11 @@
                 {{range .components}}
                     <tr>
                         <td><a href="https://www.npmjs.org/package/{{.name}}" target="_blank">{{.name}}</a>@{{.version}}</td>
-                        <td>{{.status}}
+                        <td>
+                        {{if eq .status 0}} 已安装
+                        {{else if eq .status 1}} 未安装
+                        {{else if eq .status 2}} 安装中
+                        {{end}}
                         </td>
                         <td>
                             <button class="install_btn" comp="{{.name}}@{{.version}}" typ="install">install</button>

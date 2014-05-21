@@ -50,7 +50,6 @@ func main() {
 		p := map[string]interface{}{
 			"title":      "Submit FIS plugin",
 			"components": comps,
-			"count":      len(comps),
 		}
 
 		r.HTML(200, "page/index", p)
