@@ -30,17 +30,19 @@ const (
 var App_config map[string]string
 
 func main() {
+
+	App_config = Get_config()
+	document_root, _ := App_config["document_root"]
+
 	m := martini.Classic()
-	m.Use(martini.Static("public"))
+	m.Use(martini.Static(document_root + "public"))
 
 	m.Use(fis.Renderer(fis.Options{
-		Directory:  "template",
+		Directory:  document_root + "template",
 		Extensions: []string{".tpl"},
 	}))
 
 	var err error
-
-	App_config = Get_config()
 
 	dsn, _ := App_config["mysql_dsn"]
 
@@ -355,25 +357,19 @@ func Get_config() map[string]string {
 		r[k] = v.(string)
 	}
 
-	var ok bool
-	_, ok = r["npm_path"]
-	if !ok {
-		r["npm_path"] = os.Getenv("NODE_PATH")
-	}
-	_, ok = r["mysql_dsn"]
-	if !ok {
-		r["mysql_dsn"] = "root@/plg"
+	default_ := map[string]string{
+		"document_root": "",
+		"npm_path":      os.Getenv("NODE_PATH"),
+		"mysql_dsn":     "root@/plg",
+		"server_host":   "0.0.0.0",
+		"server_port":   "3000",
 	}
 
-	_, ok = r["server_port"]
-	if !ok {
-		r["server_port"] = "4000"
+	for key, _ := range default_ {
+		if user_value, ok := r[key]; ok {
+			default_[key] = user_value
+		}
 	}
 
-	_, ok = r["server_host"]
-	if !ok {
-		r["server_host"] = "0.0.0.0"
-	}
-
-	return r
+	return default_
 }
