@@ -351,12 +351,6 @@ func Get_config() map[string]string {
 		panic(err)
 	}
 
-	r := map[string]string{}
-
-	for k, v := range config {
-		r[k] = v.(string)
-	}
-
 	default_ := map[string]string{
 		"document_root": "",
 		"npm_path":      os.Getenv("NODE_PATH"),
@@ -366,8 +360,8 @@ func Get_config() map[string]string {
 	}
 
 	for key, _ := range default_ {
-		if user_value, ok := r[key]; ok {
-			default_[key] = user_value
+		if user_value, ok := config[key]; ok {
+			default_[key] = user_value.(string)
 		}
 	}
 
