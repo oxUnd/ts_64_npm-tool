@@ -214,7 +214,7 @@ func Update_(db *sql.DB, name, status, version, user string) (int64, error) {
 		return -1, err
 	}
 
-	result, err := stmt.Exec(version, status, version, user, name)
+	result, err := stmt.Exec(status, version, user, name)
 	if err != nil {
 		return -1, err
 	}
@@ -259,9 +259,12 @@ func List_local() []map[string]string {
 		if dir.IsDir() {
 			package_json := path.Join(npm_, dir.Name(), "package.json")
 			content, err := ioutil.ReadFile(package_json)
+
 			if err != nil {
+				log.Println(err)
 				continue
 			}
+
 			decoder := json.NewDecoder(bytes.NewBuffer(content))
 			var json_ map[string]interface{}
 			err = decoder.Decode(&json_)
@@ -277,6 +280,7 @@ func List_local() []map[string]string {
 			comps = append(comps, comp)
 		}
 	}
+
 	return comps
 }
 
@@ -284,7 +288,10 @@ func Refresh(db *sql.DB) bool {
 	components := List_local()
 
 	for _, v := range components {
-		Update_(db, v["name"], s0, v["version"], "fis")
+		_, err := Update_(db, v["name"], s0, v["version"], "fis")
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return true
